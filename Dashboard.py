@@ -16,7 +16,7 @@ if fl is not None:
     st.write(filename)
     df = pd.read_csv(filename, encoding = "ISO-8859-1")
 else:
-    os.chdir(r"E:\python\python projects\Streamlit proj Dashboard")
+    os.chdir(r"https://drive.google.com/file/d/1RU9fK6w32hPgSnr5RgHsaWRfXSO3oRAy/view?usp=drivesdk")
     df = pd.read_csv("Superstore.csv", encoding = "ISO-8859-1")
 
 col1, col2 = st.columns((2))
