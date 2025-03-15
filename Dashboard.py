@@ -1,8 +1,11 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-import os
 import warnings
+import io
+import requests
+import plotly.figure_factory as ff
+
 warnings.filterwarnings('ignore')
 
 st.set_page_config(page_title="Superstore!!!", page_icon=":bar_chart:",layout="wide")
@@ -16,30 +19,28 @@ fl = st.file_uploader(":file_folder: Upload a file", type=["csv", "txt", "xlsx",
 if fl is not None:
     filename = fl.name
     st.write(f"Uploaded file: {filename}")
-
-    # Read uploaded file
     df = pd.read_csv(fl, encoding="ISO-8859-1")  # Use 'fl' directly instead of filename
 
 else:
-    # Determine the base directory dynamically
-    if platform.system() == "Windows":
-        base_dir = r"E:\python\python projects\Streamlit proj Dashboard"
-    else:
-        base_dir = os.path.dirname(os.path.abspath(__file__))  # Use script directory
+    # Default dataset from GitHub
+    github_url = "https://raw.githubusercontent.com/Don40/my-streamlit-app/main/Superstore.csv"
 
-    default_file = os.path.join(base_dir, "Superstore.csv")
+    try:
+        response = requests.get(github_url)
+        if response.status_code == 200:
+            df = pd.read_csv(io.StringIO(response.text), encoding="ISO-8859-1")
+            st.write("Loaded dataset from GitHub: Superstore.csv")
+        else:
+            st.error("Could not fetch dataset from GitHub. Please upload a file.")
+            df = None
+    except Exception as e:
+        st.error(f"Error fetching dataset: {e}")
+        df = None
 
-    if os.path.exists(default_file):
-        df = pd.read_csv(default_file, encoding="ISO-8859-1")
-        st.write("Loaded default dataset: Superstore.csv")
-    else:
-        st.error("Default file 'Superstore.csv' not found! Please upload a file.")
-        df = None  # Prevent errors if df is not assigned
+if df is not None:
+    col1, col2 = st.columns((2))
+    df["Order Date"] = pd.to_datetime(df["Order Date"]) 
 
-col1, col2 = st.columns((2))
-df["Order Date"] = pd.to_datetime(df["Order Date"]) 
-col1, col2 = st.columns((2))
-df["Order Date"] = pd.to_datetime(df["Order Date"])
 
 # Getting the min and max date 
 startDate = pd.to_datetime(df["Order Date"]).min()
