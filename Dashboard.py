@@ -10,14 +10,31 @@ st.set_page_config(page_title="Superstore!!!", page_icon=":bar_chart:",layout="w
 st.title(" :bar_chart: Sample SuperStore EDA")
 st.markdown('<style>div.block-container{padding-top:1rem;}</style>',unsafe_allow_html=True)
 
-fl = st.file_uploader(":file_folder: Upload a file",type=(["csv","txt","xlsx","xls"]))
+# File uploader
+fl = st.file_uploader(":file_folder: Upload a file", type=["csv", "txt", "xlsx", "xls"])
+
 if fl is not None:
     filename = fl.name
-    st.write(filename)
-    df = pd.read_csv(filename, encoding = "ISO-8859-1")
+    st.write(f"Uploaded file: {filename}")
+
+    # Read uploaded file
+    df = pd.read_csv(fl, encoding="ISO-8859-1")  # Use 'fl' directly instead of filename
+
 else:
-    os.chdir(r"E:\python\python projects\Streamlit proj Dashboard")
-    df = pd.read_csv("Superstore.csv", encoding = "ISO-8859-1")
+    # Determine the base directory dynamically
+    if platform.system() == "Windows":
+        base_dir = r"E:\python\python projects\Streamlit proj Dashboard"
+    else:
+        base_dir = os.path.dirname(os.path.abspath(__file__))  # Use script directory
+
+    default_file = os.path.join(base_dir, "Superstore.csv")
+
+    if os.path.exists(default_file):
+        df = pd.read_csv(default_file, encoding="ISO-8859-1")
+        st.write("Loaded default dataset: Superstore.csv")
+    else:
+        st.error("Default file 'Superstore.csv' not found! Please upload a file.")
+        df = None  # Prevent errors if df is not assigned
 
 col1, col2 = st.columns((2))
 df["Order Date"] = pd.to_datetime(df["Order Date"]) 
