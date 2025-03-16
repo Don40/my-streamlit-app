@@ -1,8 +1,11 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
-import os
 import warnings
+import io
+import requests
+import plotly.figure_factory as ff
+
 warnings.filterwarnings('ignore')
 
 st.set_page_config(page_title="Superstore!!!", page_icon=":bar_chart:",layout="wide")
@@ -10,19 +13,34 @@ st.set_page_config(page_title="Superstore!!!", page_icon=":bar_chart:",layout="w
 st.title(" :bar_chart: Sample SuperStore EDA")
 st.markdown('<style>div.block-container{padding-top:1rem;}</style>',unsafe_allow_html=True)
 
-fl = st.file_uploader(":file_folder: Upload a file",type=(["csv","txt","xlsx","xls"]))
+# File uploader
+fl = st.file_uploader(":file_folder: Upload a file", type=["csv", "txt", "xlsx", "xls"])
+
 if fl is not None:
     filename = fl.name
-    st.write(filename)
-    df = pd.read_csv(filename, encoding = "ISO-8859-1")
-else:
-    os.chdir(r"E:\python\python projects\Streamlit proj Dashboard")
-    df = pd.read_csv("Superstore.csv", encoding = "ISO-8859-1")
+    st.write(f"Uploaded file: {filename}")
+    df = pd.read_csv(fl, encoding="ISO-8859-1")  # Use 'fl' directly instead of filename
 
-col1, col2 = st.columns((2))
-df["Order Date"] = pd.to_datetime(df["Order Date"]) 
-col1, col2 = st.columns((2))
-df["Order Date"] = pd.to_datetime(df["Order Date"])
+else:
+    # Default dataset from GitHub
+    github_url = "https://raw.githubusercontent.com/Don40/my-streamlit-app/main/Superstore.csv"
+
+    try:
+        response = requests.get(github_url)
+        if response.status_code == 200:
+            df = pd.read_csv(io.StringIO(response.text), encoding="ISO-8859-1")
+            st.write("Loaded dataset from GitHub: Superstore.csv")
+        else:
+            st.error("Could not fetch dataset from GitHub. Please upload a file.")
+            df = None
+    except Exception as e:
+        st.error(f"Error fetching dataset: {e}")
+        df = None
+
+if df is not None:
+    col1, col2 = st.columns((2))
+    df["Order Date"] = pd.to_datetime(df["Order Date"]) 
+
 
 # Getting the min and max date 
 startDate = pd.to_datetime(df["Order Date"]).min()
